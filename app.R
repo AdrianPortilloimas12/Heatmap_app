@@ -439,7 +439,6 @@ server <- function(input, output, session) {
     names(out) <- anno_labels() 
     out
   })
-
   ## ─────────────────────────────
   ## 6.  Heat-map object
   ##    (fires only when Run is pressed)
