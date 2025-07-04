@@ -337,26 +337,14 @@ server <- function(input, output, session) {
     stopifnot(identical(colnames(expr_mat), rownames(pheno)))
 
     ## ─────────────────────────────
-    ## 3b.  OPTIONAL: filter samples
-    ## ─────────────────────────────
-    if (nzchar(input$filtervar) && nzchar(input$filterval)) {
-      keep_filter <- pheno[[input$filtervar]] == input$filterval
-      validate(need(
-        sum(keep_filter) > 1,
-        "No samples remain after applying the filter."
-      ))
-      pheno <- pheno[keep_filter, , drop = FALSE]
-      expr_mat <- expr_mat[, keep_filter, drop = FALSE]
-      stopifnot(identical(colnames(expr_mat), rownames(pheno)))
-    }
-    ## ─────────────────────────────
-    ## 4.  Drop samples with missing vars
+    ## 3b.  Drop samples with missing vars
     ## ─────────────────────────────
     # build the full set of columns that must be present
     vars_needed <- unique(c(
       input$groupvar,
       input$blockvar,
-      input$annot_cols
+      input$annot_cols,
+      input$filtervar
     ))
 
     # drop empty strings (in case blockvar is blank)
@@ -379,6 +367,24 @@ server <- function(input, output, session) {
     expr_mat <- expr_mat[, keep, drop = FALSE]
 
     stopifnot(identical(colnames(expr_mat), rownames(pheno)))
+    
+    
+    ## ─────────────────────────────
+    ## 3c.  OPTIONAL: filter samples
+    ## ─────────────────────────────
+    if (nzchar(input$filtervar) && nzchar(input$filterval)) {
+      keep_filter <- pheno[[input$filtervar]] == input$filterval
+      validate(need(
+        sum(keep_filter) > 1,
+        "No samples remain after applying the filter."
+      ))
+      
+      print(pheno[[input$filtervar]])
+      print(keep_filter)
+      pheno <- pheno[keep_filter, , drop = FALSE]
+      expr_mat <- expr_mat[, keep_filter, drop = FALSE]
+      stopifnot(identical(colnames(expr_mat), rownames(pheno)))
+    }
 
     list(
       expr_mat = expr_mat,
@@ -399,8 +405,7 @@ server <- function(input, output, session) {
 
 
   ## ─────────────────────────────
-  ## 5.  create the clean data and color objects
-  ##
+  ## 4.  create the clean data and color objects
   ## ─────────────────────────────
   anno_plot <- reactive({
     req(input$annot_cols, clean_pheno())
